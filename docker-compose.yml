@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_DB: ncct_db
+      POSTGRES_USER: ncct_user
+      POSTGRES_PASSWORD: ncct_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    networks:
+      - ncct_network
+
+  backend:
+    build: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    networks:
+      - ncct_network
+
+volumes:
+  postgres_data:
+
+networks:
+  ncct_network:
+    driver: bridge
