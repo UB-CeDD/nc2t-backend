@@ -1,0 +1,43 @@
+# Python bytecode files
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Django migrations
+*/migrations/*
+
+# SQLite database file (if used in development)
+db.sqlite3
+
+# Logs
+*.log
+
+# Static files (if you want to exclude them from the image)
+static/
+media/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Dockerfile and docker-compose files (if you want to ignore these from the context)
+Dockerfile
+docker-compose.yml
+
+# Environment files (add your own .env files for secrets or configurations)
+*.env
+
+# Cache directories
+*.cache
