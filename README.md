@@ -64,7 +64,7 @@ Before running the backend, ensure you have the following installed:
 ---
 ## Development Workflow
 - The Django project is automatically created in the src directory.
-- You can edit the Django files in the src directory on your host machine. Changes will be reflected in the container.
+- You can edit the Django files in the ncct_backend directory on your host machine. Changes will be reflected in the container.
 ---
 ## Technologies Used
 - **Backend**:
