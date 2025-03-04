@@ -12,6 +12,14 @@ WORKDIR /app
 COPY requirements.txt /app/
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Install additional dependencies
+RUN pip install --no-cache-dir \
+    djangorestframework \
+    djangorestframework-simplejwt \
+    django-celery-email \
+    python-decouple \
+    python-dotenv
+
 # Copy the entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
