@@ -18,7 +18,8 @@ RUN pip install --no-cache-dir \
     djangorestframework-simplejwt \
     django-celery-email \
     python-decouple \
-    python-dotenv
+    python-dotenv \
+    django-cors-headers
 
 # Copy the entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh
