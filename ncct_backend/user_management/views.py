@@ -201,7 +201,6 @@ class RegisterAPI(APIView):
     permission_classes = [AllowAny]  # Add this line
 
     def post(self, request):
-        print(request.data)
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
@@ -215,7 +214,11 @@ class RegisterAPI(APIView):
 
 
 class LoginAPI(APIView):
+    permission_classes = [AllowAny]  # Add this line
+
     def post(self, request):
+        print(request.data)
+
         username = request.data.get('username')
         password = request.data.get('password')
         user = authenticate(username=username, password=password)
