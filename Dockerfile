@@ -19,7 +19,8 @@ RUN pip install --no-cache-dir \
     django-celery-email \
     python-decouple \
     python-dotenv \
-    django-cors-headers
+    django-cors-headers \
+    django-filter
 
 # Copy the entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh
