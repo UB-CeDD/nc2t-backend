@@ -1,5 +1,6 @@
 from django.db import models
 from ncct_backend.compound_management.models import Compound
+from ncct_backend.location_management.models import Location
 
 # Species model
 class Species(models.Model):
@@ -21,20 +22,6 @@ class SpeciesCompound(models.Model):
 
     def __str__(self):
         return f"{self.species.unique_id} - {self.compound.subclass}"
-
-# Location model
-class Location(models.Model):
-    unique_id = models.AutoField(primary_key=True)
-    continent = models.CharField(max_length=255)
-    country = models.CharField(max_length=255)
-    region_state = models.CharField(max_length=255)
-    city_town = models.CharField(max_length=255)
-    place = models.CharField(max_length=255)
-    gps_latitude = models.DecimalField(max_digits=9, decimal_places=6)
-    gps_longitude = models.DecimalField(max_digits=9, decimal_places=6)
-
-    def __str__(self):
-        return f"{self.city_town}, {self.country}"
 
 # Site model
 class Site(models.Model):
@@ -76,11 +63,12 @@ class SpeciesHerbarium(models.Model):
 
 # Reference model
 class Reference(models.Model):
-    unique_id = models.AutoField(primary_key=True)
     type = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255)
+    doi = models.CharField(max_length=255, blank=True, null=True)
     thesis_level = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.title
+

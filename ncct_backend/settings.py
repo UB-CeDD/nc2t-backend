@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'ncct_backend.compound_management',
+    'ncct_backend.location_management',
     'ncct_backend.species_management',
     'ncct_backend.user_management',
 ]
