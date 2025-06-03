@@ -5,3 +5,4 @@ urlpatterns = [
     path('compounds/', CompoundListCreateView.as_view(), name='compound-list-create'),
     path('compounds/<int:pk>/', CompoundRetrieveUpdateDestroyView.as_view(), name='compound-detail'),
 ]
+

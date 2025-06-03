@@ -1,6 +1,10 @@
+# ncct_backend/compound_management/views.py
+from rest_framework import status
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
-from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAuthenticated
+# from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from .models import Compound
 from .serializers import CompoundSerializer
@@ -8,17 +12,12 @@ from .serializers import CompoundSerializer
 
 # List and Create View
 class CompoundListCreateView(ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
-
     queryset = Compound.objects.all()
     serializer_class = CompoundSerializer
-    filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['subclass', 'compound_class', 'smiles']
+    permission_classes = [IsAuthenticated]
 
-
-# Retrieve, Update, and Delete View
+# Retrieve, Update, and Destroy View
 class CompoundRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
-
     queryset = Compound.objects.all()
     serializer_class = CompoundSerializer
+    permission_classes = [IsAuthenticated]
