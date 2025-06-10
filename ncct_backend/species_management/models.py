@@ -1,12 +1,13 @@
 from django.db import models
 from ncct_backend.compound_management.models import Compound
 from ncct_backend.location_management.models import Location
+from ncct_backend.reference_management.models import Reference
 
 # Species model
 class Species(models.Model):
     unique_id = models.AutoField(primary_key=True)
     compound_code = models.IntegerField()
-    ref = models.ForeignKey('Reference', on_delete=models.CASCADE)
+    ref = models.ForeignKey(Reference, on_delete=models.CASCADE)
     collection_data = models.TextField()
 
     def __str__(self):
@@ -60,15 +61,4 @@ class SpeciesHerbarium(models.Model):
 
     def __str__(self):
         return f"{self.species.unique_id} - {self.herbarium.unique_id}"
-
-# Reference model
-class Reference(models.Model):
-    type = models.CharField(max_length=255)
-    title = models.CharField(max_length=255)
-    author = models.CharField(max_length=255)
-    doi = models.CharField(max_length=255, blank=True, null=True)
-    thesis_level = models.CharField(max_length=255, blank=True, null=True)
-
-    def __str__(self):
-        return self.title
 

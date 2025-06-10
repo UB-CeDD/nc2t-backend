@@ -22,5 +22,6 @@ urlpatterns = [
     path('api/', include('ncct_backend.user_management.urls')),  # Routes to user management endpoints
     path('api/', include('ncct_backend.compound_management.urls')),
     path('api/', include('ncct_backend.location_management.urls')),
+    path('api/', include('ncct_backend.reference_management.urls')),
     path('api/', include('ncct_backend.species_management.urls')),
 ]
