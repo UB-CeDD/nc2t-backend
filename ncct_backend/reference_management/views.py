@@ -1,7 +1,146 @@
+import os
+import re
+import fitz  # PyMuPDF
+import requests
+from bs4 import BeautifulSoup
+from django.conf import settings
+from rest_framework.decorators import api_view, parser_classes
+from rest_framework.parsers import MultiPartParser
+from rest_framework.response import Response
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+from rest_framework import status
 from .models import Reference
 from .serializers import ReferenceSerializer
+from django.db.models import Q
+from dotenv import load_dotenv
+
+load_dotenv()
+
+CROSSREF_API = os.getenv("CROSSREF_API")
+SEMANTIC_SCHOLAR_API = os.getenv("SEMANTIC_SCHOLAR_API")
+BING_SEARCH_API = os.getenv("BING_SEARCH_API")
+BING_API_KEY = os.getenv("BING_API_KEY", "")
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
+
+def extract_text_from_pdf(pdf_file):
+    """Extract full text from PDF using PyMuPDF."""
+    text = ""
+    pdf_document = fitz.open(stream=pdf_file.read(), filetype="pdf")
+    for page in pdf_document:
+        text += page.get_text()
+    return text
+
+def google_search(query):
+        """Search using Google Custom Search API."""
+        if not GOOGLE_API_KEY or not GOOGLE_CSE_ID:
+            return []
+
+        search_url = "https://www.googleapis.com/customsearch/v1"
+        params = {
+            "key": GOOGLE_API_KEY,
+            "cx": GOOGLE_CSE_ID,
+            "q": query,
+            "num": 5
+        }
+
+        res = requests.get(search_url, params=params)
+        # Check if the request was successful
+        if res.status_code != 200:
+            return []
+
+        results = []
+        for item in res.json().get("items", []):
+            results.append({
+                "title": item.get("title"),
+                "link": item.get("link"),
+                "snippet": item.get("snippet", "")
+            })
+        return results
+
+def web_search(query):
+    """Try Bing API first, fallback to Google if no key."""
+    if BING_API_KEY:
+        headers = {"Ocp-Apim-Subscription-Key": BING_API_KEY}
+        bing_res = requests.get(BING_SEARCH_API, headers=headers, params={"q": query, "count": 5})
+        if bing_res.status_code == 200:
+            return bing_res.json().get("webPages", {}).get("value", [])
+    else:
+        return google_search(query)
+
+def search_publication_internet(text):
+    results = {
+        "doi": None,
+        "metadata": None,
+        "semantic_scholar": None,
+        "web_matches": None
+    }
+
+    # 1️⃣ Try extracting DOI
+    doi_match = re.search(r'\b10\.\d{4,9}/[-._;()/:A-Z0-9]+', text, re.I)
+    if doi_match:
+        doi = doi_match.group(0)
+        results["doi"] = doi
+
+        # CrossRef metadata
+        crossref_res = requests.get(f"{CROSSREF_API}/{doi}")
+        if crossref_res.status_code == 200:
+            results["metadata"] = crossref_res.json().get("message", {})
+
+        # Semantic Scholar
+        ss_params = {"query": doi, "limit": 1, "fields": "title,authors,url,abstract"}
+        ss_res = requests.get(SEMANTIC_SCHOLAR_API, params=ss_params)
+        if ss_res.status_code == 200:
+            results["semantic_scholar"] = ss_res.json()
+
+        # Web search by DOI
+        results["web_matches"] = web_search(doi)
+        return results
+
+    # 2️⃣ If no DOI → try title
+    title_match = re.search(r'(?<=\n)[A-Z][^\n]{20,200}(?=\n)', text)
+    if title_match:
+        title = title_match.group(0).strip()
+
+        # CrossRef search
+        cr_params = {"query.title": title, "rows": 1}
+        cr_res = requests.get(CROSSREF_API, params=cr_params)
+        if cr_res.status_code == 200:
+            items = cr_res.json().get("message", {}).get("items", [])
+            if items:
+                results["metadata"] = items[0]
+
+        # Semantic Scholar
+        ss_params = {"query": title, "limit": 1, "fields": "title,authors,url,abstract"}
+        ss_res = requests.get(SEMANTIC_SCHOLAR_API, params=ss_params)
+        if ss_res.status_code == 200:
+            results["semantic_scholar"] = ss_res.json()
+
+        # Web search
+        results["web_matches"] = web_search(f'"{title}"')
+        return results
+
+    return {"error": "No DOI or title found"}
+
+@api_view(["POST"])
+@parser_classes([MultiPartParser])
+def upload_and_search_pdf(request):
+    """
+    Upload a PDF, extract metadata from the internet (CrossRef, Semantic Scholar, Web Search).
+    """
+    pdf_file = request.FILES.get("file")
+    if not pdf_file:
+        return Response({"error": "No file uploaded"}, status=400)
+
+    # Step 1: Extract text
+    text = extract_text_from_pdf(pdf_file)
+
+    # Step 2: Search internet
+    results = search_publication_internet(text)
+
+    return Response(results)
 
 class ReferenceListCreateView(ListCreateAPIView):
     queryset = Reference.objects.all()
@@ -13,3 +152,43 @@ class ReferenceRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     serializer_class = ReferenceSerializer
     permission_classes = [IsAuthenticated]
 
+class ReferenceSearchView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        search_term = request.query_params.get('q', None)
+        if not search_term:
+            return Response({"error": "A search term ('q' parameter) is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Search references matching the term
+        references = Reference.objects.filter(
+            Q(type__icontains=search_term) |
+            Q(title__icontains=search_term) |
+            Q(author__icontains=search_term) |
+            Q(doi__icontains=search_term) |
+            Q(thesis_level__icontains=search_term)
+        )
+        if references.exists():
+            # Find species with matching references
+            from species_management.models import Species
+            species_with_refs = Species.objects.filter(ref__in=references).distinct()
+            from species_management.serializers import SpeciesSerializer
+            serializer = SpeciesSerializer(species_with_refs, many=True)
+            return Response(serializer.data)
+        else:
+            search_query = f"{search_term}"
+            web_results = web_search(search_query)
+            # Always return web search results as an array
+            formatted_results = []
+            for result in web_results:
+                formatted_results.append({
+                    "title": result.get("title"),
+                    "author": result.get("author"),
+                    "doi": result.get("doi"),
+                    "brief_text": result.get("brief_text"),
+                    "link": result.get("link")
+                })
+            return Response({
+                "message": "No results found in the database. Showing web search results.",
+                "results": formatted_results
+            })

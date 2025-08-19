@@ -20,7 +20,11 @@ RUN pip install --no-cache-dir \
     python-decouple \
     python-dotenv \
     django-cors-headers \
-    django-filter
+    django-filter \
+    PyMuPDF \
+    requests  \
+    bs4 \
+    dotenv
 
 # Copy the entrypoint script
 COPY entrypoint.sh /app/entrypoint.sh

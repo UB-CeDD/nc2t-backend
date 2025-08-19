@@ -23,6 +23,7 @@ class RegisterAPI(APIView):
                 'user': UserSerializer(user).data,
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
+                'expires_in': refresh.access_token.lifetime.total_seconds(),
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -43,6 +44,7 @@ class LoginAPI(APIView):
                 'user': UserSerializer(user).data,
                 'refresh': str(refresh),
                 'access': str(refresh.access_token),
+                'expires_in': refresh.access_token.lifetime.total_seconds(),
             })
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -81,13 +83,13 @@ class UserListAPI(APIView):
         if name:
             users = users.filter(Q(first_name__icontains=name) | Q(last_name__icontains=name))
         if email:
-            users = users.filter(email__icontains=email)
+            users = users.filter(email__icontains(email))
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 
 
 class AdminCreateUserAPI(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsAdminUser]
 
     def post(self, request):
         serializer = UserSerializer(data=request.data)
@@ -95,4 +97,25 @@ class AdminCreateUserAPI(APIView):
             user = serializer.save()
             return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class LogoutAPI(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user_id = request.data.get('user_id')
+        refresh_token = request.data.get('refresh')
+        if not user_id:
+            return Response({'error': 'User ID is required.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            return Response({'error': 'User not found.'}, status=status.HTTP_404_NOT_FOUND)
+        if refresh_token:
+            try:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+            except TokenError:
+                return Response({'error': 'Invalid refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": f"User {user.username} logged out successfully."}, status=status.HTTP_200_OK)
 
