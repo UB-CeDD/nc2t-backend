@@ -13,7 +13,6 @@ class SpeciesListCreateView(ListCreateAPIView):
     queryset = Species.objects.all()
     serializer_class = SpeciesListSerializer
     filter_backends = [DjangoFilterBackend]
-    filterset_fields = ['compound_code']
 
 
 # Retrieve, Update, and Delete View

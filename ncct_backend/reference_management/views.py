@@ -13,6 +13,8 @@ from rest_framework.views import APIView
 from rest_framework import status
 from .models import Reference
 from .serializers import ReferenceSerializer
+from ncct_backend.species_management.serializers import SpeciesSerializer
+from ncct_backend.species_management.models import Species
 from django.db.models import Q
 from dotenv import load_dotenv
 
@@ -43,7 +45,7 @@ def google_search(query):
             "key": GOOGLE_API_KEY,
             "cx": GOOGLE_CSE_ID,
             "q": query,
-            "num": 5
+            "num": 10
         }
 
         res = requests.get(search_url, params=params)
@@ -160,7 +162,7 @@ class ReferenceSearchView(APIView):
         if not search_term:
             return Response({"error": "A search term ('q' parameter) is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Search references matching the term
+        # Find references where the search term matches any field
         references = Reference.objects.filter(
             Q(type__icontains=search_term) |
             Q(title__icontains=search_term) |
@@ -168,12 +170,15 @@ class ReferenceSearchView(APIView):
             Q(doi__icontains=search_term) |
             Q(thesis_level__icontains=search_term)
         )
+
+        species_with_refs = Species.objects.none()
         if references.exists():
-            # Find species with matching references
-            from species_management.models import Species
-            species_with_refs = Species.objects.filter(ref__in=references).distinct()
-            from species_management.serializers import SpeciesSerializer
+            # Get all species linked to these references
+            species_with_refs = Species.objects.filter(references__in=references).distinct()
+
+        if species_with_refs.exists():
             serializer = SpeciesSerializer(species_with_refs, many=True)
+            print('Search results:', serializer.data)
             return Response(serializer.data)
         else:
             search_query = f"{search_term}"
@@ -181,12 +186,30 @@ class ReferenceSearchView(APIView):
             # Always return web search results as an array
             formatted_results = []
             for result in web_results:
+                link = result.get("link") or result.get("url")
+                if not link:
+                    continue
+
+                doi = None
+                try:
+                    page_res = requests.get(link, timeout=10)
+                    if page_res.status_code == 200:
+                        # Using BeautifulSoup to avoid issues with non-text content
+                        soup = BeautifulSoup(page_res.content, 'html.parser')
+                        text = soup.get_text()
+                        doi_match = re.search(r'\b10\.\d{4,9}/[-._;()/:A-Z0-9]+\b', text, re.IGNORECASE)
+                        if doi_match:
+                            doi = doi_match.group(0)
+                except requests.exceptions.RequestException:
+                    # It's okay if a page fails to load, just continue
+                    pass
+
                 formatted_results.append({
-                    "title": result.get("title"),
-                    "author": result.get("author"),
-                    "doi": result.get("doi"),
-                    "brief_text": result.get("brief_text"),
-                    "link": result.get("link")
+                    "title": result.get("title") or result.get("name"),
+                    "author": None,  # Author is not reliably available from search results
+                    "doi": doi,
+                    "brief_text": result.get("snippet"),
+                    "link": link
                 })
             return Response({
                 "message": "No results found in the database. Showing web search results.",

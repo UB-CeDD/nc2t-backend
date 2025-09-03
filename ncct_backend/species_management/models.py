@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from ncct_backend.compound_management.models import Compound
 from ncct_backend.location_management.models import Location
@@ -6,9 +7,12 @@ from ncct_backend.reference_management.models import Reference
 # Species model
 class Species(models.Model):
     unique_id = models.AutoField(primary_key=True)
-    compound_code = models.IntegerField()
-    ref = models.ForeignKey(Reference, on_delete=models.CASCADE)
-    collection_data = models.TextField()
+    name = models.CharField(max_length=255, null=False)
+    recent_name = models.CharField(max_length=255, null=True, blank=True)
+    kingdom = models.CharField(max_length=255, null=True, blank=True, default='Plantae')
+    family = ArrayField(models.CharField(max_length=255), blank=True, null=True)
+    references = models.ManyToManyField(Reference, related_name='species')
+    collection_data = ArrayField(models.TextField(), blank=True, null=True)
 
     def __str__(self):
         return f"Species {self.unique_id}"
