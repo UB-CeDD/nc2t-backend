@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.contrib.contenttypes.models import ContentType
@@ -5,8 +6,13 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from datetime import timedelta
 
+# Function to generate a string UUID
+def generate_uuid_str():
+    return str(uuid.uuid4())
+
 # Profile model for storing additional user info like auth_code, auth_code_expiry
 class Profile(models.Model):
+    id = models.CharField(max_length=36, primary_key=True, default=generate_uuid_str, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     department = models.CharField(max_length=255, blank=True, null=True)
     auth_code = models.CharField(max_length=6, blank=True, null=True)
@@ -41,6 +47,7 @@ class Profile(models.Model):
 
 # Role model with normalized permissions
 class Role(models.Model):
+    id = models.CharField(max_length=36, primary_key=True, default=generate_uuid_str, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)  # Link to Django User
     system_admin = models.CharField(max_length=255)
     fieldname = models.CharField(max_length=255)

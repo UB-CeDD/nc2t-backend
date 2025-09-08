@@ -1,42 +1,33 @@
 from django.contrib import admin
-from .models import Species, Site, Herbarium, SpeciesCompound, SpeciesSite, SpeciesHerbarium
-from ncct_backend.reference_management.models import Reference # Import Reference model
-
+from .models import Species, Habitat, SpeciesUser, SpeciesChange
+from ncct_backend.location_management.models import Site
 
 @admin.register(Species)
 class SpeciesAdmin(admin.ModelAdmin):
-    list_display = ('unique_id', 'compound_codes_display', 'display_references', 'collection_data')
-    search_fields = ('references__title',)
+    list_display = ('id', 'name', 'family', 'publication_status', 'is_public')
+    search_fields = ('name', 'family', 'references__title')
+    list_filter = ('publication_status', 'is_public', 'family')
+    filter_horizontal = ('compounds', 'references', 'storage_locations', 'habitats', 'users')
 
-    def compound_codes_display(self, obj):
-        return ', '.join(str(sc.compound_id) for sc in obj.speciescompound_set.all())
-    compound_codes_display.short_description = 'Compound IDs'
+@admin.register(Habitat)
+class HabitatAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+    search_fields = ('name',)
 
-    def display_references(self, obj):
-        return ", ".join([ref.title for ref in obj.references.all()])
-    display_references.short_description = 'References'
+@admin.register(SpeciesUser)
+class SpeciesUserAdmin(admin.ModelAdmin):
+    list_display = ('species', 'user', 'role')
+    search_fields = ('species__name', 'user__username')
+    list_filter = ('role',)
 
+@admin.register(SpeciesChange)
+class SpeciesChangeAdmin(admin.ModelAdmin):
+    list_display = ('species', 'user', 'status', 'created_at')
+    search_fields = ('species__name', 'user__username')
+    list_filter = ('status',)
+    readonly_fields = ('created_at',)
 
 @admin.register(Site)
 class SiteAdmin(admin.ModelAdmin):
-    list_display = ('unique_id', 'location')
-
-
-@admin.register(Herbarium)
-class HerbariumAdmin(admin.ModelAdmin):
-    list_display = ('unique_id', 'location')
-
-
-@admin.register(SpeciesCompound)
-class SpeciesCompoundAdmin(admin.ModelAdmin):
-    list_display = ('species', 'compound')
-
-
-@admin.register(SpeciesSite)
-class SpeciesSiteAdmin(admin.ModelAdmin):
-    list_display = ('species', 'site')
-
-
-@admin.register(SpeciesHerbarium)
-class SpeciesHerbariumAdmin(admin.ModelAdmin):
-    list_display = ('species', 'herbarium')
+    list_display = ('name', 'location')
+    search_fields = ('name', 'location__name')

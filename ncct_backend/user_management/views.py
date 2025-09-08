@@ -73,6 +73,10 @@ class UserDetailAPI(APIView):
             return Response(serializer.data)
 
 
+def email__icontains(email):
+    pass
+
+
 class UserListAPI(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -89,8 +93,7 @@ class UserListAPI(APIView):
 
 
 class AdminCreateUserAPI(APIView):
-    permission_classes = [IsAuthenticated, IsAdminUser]
-
+    permission_classes = [IsAuthenticated]
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():

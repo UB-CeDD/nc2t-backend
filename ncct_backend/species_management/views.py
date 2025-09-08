@@ -1,23 +1,97 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.permissions import IsAuthenticated
+from .models import Species, SpeciesUser, SpeciesChange, Habitat, Herbarium
+from .serializers import (
+    SpeciesListSerializer, SpeciesDetailSerializer, SpeciesUserSerializer, 
+    SpeciesChangeSerializer, HabitatSerializer, HerbariumSerializer
+)
 
-from .models import Species
-from .serializers import SpeciesListSerializer, SpeciesDetailSerializer
-
-
-# List and Create View
+# List and Create View for Species
 class SpeciesListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
-
     queryset = Species.objects.all()
     serializer_class = SpeciesListSerializer
     filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['family', 'publication_status', 'is_public', 'habitats__name']
+    search_fields = ['name', 'recent_name', 'family']
 
-
-# Retrieve, Update, and Delete View
+# Retrieve, Update, and Delete View for Species
 class SpeciesRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
-
     queryset = Species.objects.all()
     serializer_class = SpeciesDetailSerializer
+
+# List and Create View for SpeciesUser
+class SpeciesUserListCreateView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SpeciesUserSerializer
+
+    def get_queryset(self):
+        species_pk = self.kwargs['species_pk']
+        return SpeciesUser.objects.filter(species_id=species_pk)
+
+    def perform_create(self, serializer):
+        species_pk = self.kwargs['species_pk']
+        species = Species.objects.get(id=species_pk)
+        serializer.save(species=species)
+
+# Retrieve, Update, and Delete View for SpeciesUser
+class SpeciesUserRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SpeciesUserSerializer
+
+    def get_queryset(self):
+        species_pk = self.kwargs['species_pk']
+        return SpeciesUser.objects.filter(species_id=species_pk)
+
+# List and Create View for SpeciesChange
+class SpeciesChangeListCreateView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SpeciesChangeSerializer
+
+    def get_queryset(self):
+        species_pk = self.kwargs['species_pk']
+        return SpeciesChange.objects.filter(species_id=species_pk)
+
+    def perform_create(self, serializer):
+        species_pk = self.kwargs['species_pk']
+        species = Species.objects.get(id=species_pk)
+        serializer.save(species=species, user=self.request.user)
+
+# Retrieve, Update, and Delete View for SpeciesChange
+class SpeciesChangeRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = SpeciesChangeSerializer
+
+    def get_queryset(self):
+        species_pk = self.kwargs['species_pk']
+        return SpeciesChange.objects.filter(species_id=species_pk)
+
+# List and Create View for Habitat
+class HabitatListCreateView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Habitat.objects.all()
+    serializer_class = HabitatSerializer
+    filter_backends = [DjangoFilterBackend]
+    search_fields = ['name']
+
+# Retrieve, Update, and Delete View for Habitat
+class HabitatRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Habitat.objects.all()
+    serializer_class = HabitatSerializer
+
+# List and Create View for Herbarium
+class HerbariumListCreateView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Herbarium.objects.all()
+    serializer_class = HerbariumSerializer
+    filter_backends = [DjangoFilterBackend]
+    search_fields = ['name', 'code']
+
+# Retrieve, Update, and Delete View for Herbarium
+class HerbariumRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Herbarium.objects.all()
+    serializer_class = HerbariumSerializer
