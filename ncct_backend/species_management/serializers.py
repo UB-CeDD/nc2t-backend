@@ -79,7 +79,7 @@ class SpeciesDetailSerializer(serializers.ModelSerializer):
     harvest_sites = LocationSerializer(many=True, read_only=True)
     storage_locations = LocationSerializer(many=True, read_only=True)
     habitats = HabitatSerializer(many=True, read_only=True)
-    users = SpeciesUserSerializer(many=True, read_only=True)
+    users = SpeciesUserSerializer(many=True, read_only=True, source='speciesuser_set')
     changes = SpeciesChangeSerializer(many=True, read_only=True)
 
     class Meta:
@@ -97,4 +97,14 @@ class SpeciesListSerializer(SpeciesSerializer):
     Serializer for listing and creating species.
     Uses the base SpeciesSerializer which is configured for write operations.
     """
-    pass
+    def create(self, validated_data):
+        # Get the user from the context
+        user = self.context['request'].user
+
+        # Create the species instance
+        species = super().create(validated_data)
+
+        # Assign the user as an author
+        SpeciesUser.objects.create(species=species, user=user, role='AUTHOR')
+
+        return species

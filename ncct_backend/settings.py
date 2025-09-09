@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+import sys
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -82,6 +83,10 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ncct_backend.wsgi.application'
 
 
+import sys
+
+# ... (rest of the file)
+
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
@@ -99,6 +104,13 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+# Use SQLite for tests
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'test_db.sqlite3',
+    }
 
 
 # Password validation
