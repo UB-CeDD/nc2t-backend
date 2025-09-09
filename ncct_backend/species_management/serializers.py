@@ -47,8 +47,8 @@ class SpeciesSerializer(serializers.ModelSerializer):
     references = serializers.PrimaryKeyRelatedField(
         queryset=Reference.objects.all(), many=True, required=False
     )
-    harvest_site = serializers.PrimaryKeyRelatedField(
-        queryset=Site.objects.all(), required=False, allow_null=True
+    harvest_sites = serializers.PrimaryKeyRelatedField(
+        queryset=Location.objects.all(), many=True, required=False
     )
     storage_locations = serializers.PrimaryKeyRelatedField(
         queryset=Location.objects.all(), many=True, required=False
@@ -62,7 +62,7 @@ class SpeciesSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'recent_name', 'kingdom', 'family', 'trad_uses', 'part_used',
             'collection_data', 'publication_status', 'is_public', 'publication_date',
-            'compounds', 'references', 'harvest_site', 'storage_locations', 'habitats'
+            'compounds', 'references', 'harvest_sites', 'storage_locations', 'habitats'
         ]
 
     def to_representation(self, instance):
@@ -76,7 +76,7 @@ class SpeciesSerializer(serializers.ModelSerializer):
 class SpeciesDetailSerializer(serializers.ModelSerializer):
     compounds = CompoundSerializer(many=True, read_only=True)
     references = ReferenceSerializer(many=True, read_only=True)
-    harvest_site = SiteSerializer(read_only=True)
+    harvest_sites = LocationSerializer(many=True, read_only=True)
     storage_locations = LocationSerializer(many=True, read_only=True)
     habitats = HabitatSerializer(many=True, read_only=True)
     users = SpeciesUserSerializer(many=True, read_only=True)
@@ -87,7 +87,7 @@ class SpeciesDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'recent_name', 'kingdom', 'family', 'trad_uses', 'part_used',
             'collection_data', 'publication_status', 'is_public', 'publication_date',
-            'compounds', 'references', 'harvest_site', 'storage_locations', 'habitats',
+            'compounds', 'references', 'harvest_sites', 'storage_locations', 'habitats',
             'users', 'changes'
         ]
 

@@ -14,7 +14,7 @@ class Compound(models.Model):
     name = models.CharField(max_length=255, null=True, blank=True)
     other_names = ArrayField(models.TextField(), blank=True, null=True)
     pubchem_id = models.CharField(max_length=255, null=True, blank=True)
-    bio_activity = models.CharField(max_length=255, null=True, blank=True)
+    bio_activity = models.CharField(null=True, blank=True)
     subclass = models.CharField(max_length=255)
     compound_class = models.CharField(max_length=255)
     smiles = models.TextField(unique=True)

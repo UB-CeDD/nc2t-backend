@@ -39,10 +39,10 @@ class Species(models.Model):
     id = models.CharField(max_length=22, primary_key=True, default=generate_unique_id, editable=False, unique=True)
     name = models.CharField(max_length=255, null=False)
     recent_name = models.CharField(max_length=255, null=True, blank=True)
-    kingdom = models.CharField(max_length=255, null=True, blank=True, default='Plantae')
-    trad_uses = models.CharField(max_length=255, null=True, blank=True)
-    part_used = models.CharField(max_length=255, null=True, blank=True)
-    family = models.CharField(max_length=255)
+    kingdom = models.CharField(max_length=255, null=False, default='Plantae')
+    trad_uses = models.CharField(null=True, blank=True)
+    part_used = models.CharField(max_length=255, null=False, blank=True)
+    family = models.CharField(max_length=255, null=False)
     collection_date = models.DateField(null=True, blank=True)
     collection_data = ArrayField(models.TextField(), blank=True, null=True)
     publication_status = models.CharField(max_length=10, choices=PUBLICATION_STATUS_CHOICES, default='DRAFT')
@@ -54,7 +54,7 @@ class Species(models.Model):
     # New/updated fields based on user request
     compounds = models.ManyToManyField(Compound, related_name='species', blank=True)
     references = models.ManyToManyField(Reference, related_name='species', blank=True)
-    harvest_site = models.ForeignKey(Site, on_delete=models.SET_NULL, null=True, blank=True, related_name='harvested_species')
+    harvest_sites = models.ManyToManyField(Location, related_name='picked_species', null=False)
     storage_locations = models.ManyToManyField(Location, related_name='stored_species', blank=True)
 
 
