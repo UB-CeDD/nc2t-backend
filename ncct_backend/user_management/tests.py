@@ -23,8 +23,8 @@ class UserManagementTests(TestCase):
         # Expected status: 200 OK
 
     def test_create_user(self):
-        data = {'username': 'newuser', 'email': 'newuser@nc2t.com', 'password': 'newpassword'}
-        response = self.client.post(reverse('user-list-create'), data)
+        data = {'username': 'newuser', 'email': 'newuser@nc2t.com', 'password': 'newpassword', 'role': 'Author'}
+        response = self.client.post(reverse('admin-create-user'), data)
         if response.status_code == status.HTTP_201_CREATED:
             print("\033[92mtest_create_user: PASSED\033[0m")
         else:
@@ -54,7 +54,8 @@ class UserManagementTests(TestCase):
         # Expected status: 200 OK
 
     def test_soft_delete_user(self):
-        response = self.client.patch(reverse('user-soft-delete', kwargs={'pk': self.user.pk}))
+        data = {'is_active': False}
+        response = self.client.patch(reverse('user-soft-delete', kwargs={'pk': self.user.pk}), data)
         if response.status_code == status.HTTP_200_OK:
             print("\033[92mtest_soft_delete_user: PASSED\033[0m")
         else:

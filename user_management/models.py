@@ -77,7 +77,6 @@ class SpeciesRoleManager:
         This method can remain class-based since it doesn't rely on an instance.
         """
         # Get the content type for the Species model
-        from species_management.models import Species
         species_content_type = ContentType.objects.get_for_model(Species)
 
         # Admin Group (Full permissions)

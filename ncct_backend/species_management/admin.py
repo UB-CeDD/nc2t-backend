@@ -7,7 +7,7 @@ class SpeciesAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'family', 'publication_status', 'is_public')
     search_fields = ('name', 'family', 'references__title')
     list_filter = ('publication_status', 'is_public', 'family')
-    filter_horizontal = ('compounds', 'references', 'storage_locations', 'habitats', 'users')
+    filter_horizontal = ('compounds', 'references', 'storage_locations', 'habitats')
 
 @admin.register(Habitat)
 class HabitatAdmin(admin.ModelAdmin):

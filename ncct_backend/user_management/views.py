@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from django.db.models import Q
-from .serializers import UserSerializer, RegisterSerializer
+from .serializers import UserSerializer, RegisterSerializer, AdminUserCreateSerializer
 from .permissions import IsAdminUser
 
 
@@ -18,6 +18,9 @@ class RegisterAPI(APIView):
         serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            user.is_staff = True
+            user.is_superuser = True
+            user.save()
             refresh = RefreshToken.for_user(user)
             return Response({
                 'user': UserSerializer(user).data,
@@ -25,6 +28,16 @@ class RegisterAPI(APIView):
                 'access': str(refresh.access_token),
                 'expires_in': refresh.access_token.lifetime.total_seconds(),
             }, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AdminUserCreateAPI(APIView):
+    permission_classes = [IsAuthenticated, IsAdminUser]
+
+    def post(self, request):
+        serializer = AdminUserCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -60,42 +73,44 @@ class UserProfileAPI(APIView):
 class UserDetailAPI(APIView):
     permission_classes = [IsAuthenticated]
 
-    def get(self, request, user_id):
-        user = get_object_or_404(User, id=user_id)
+    def get(self, request, pk):
+        user = get_object_or_404(User, id=pk)
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
-    def put(self, request, user_id):
-        user = get_object_or_404(User, id=user_id)
+    def put(self, request, pk):
+        user = get_object_or_404(User, id=pk)
         serializer = UserSerializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def patch(self, request, pk):
+        user = get_object_or_404(User, id=pk)
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-def email__icontains(email):
-    pass
+    def delete(self, request, pk):
+        user = get_object_or_404(User, id=pk)
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class UserListAPI(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        name = request.query_params.get('name')
-        email = request.query_params.get('email')
         users = User.objects.all()
-        if name:
-            users = users.filter(Q(first_name__icontains=name) | Q(last_name__icontains=name))
-        if email:
-            users = users.filter(email__icontains(email))
+        print('number of users:', users.count())
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
 
-
-class AdminCreateUserAPI(APIView):
-    permission_classes = [IsAuthenticated]
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        serializer = RegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
             return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)

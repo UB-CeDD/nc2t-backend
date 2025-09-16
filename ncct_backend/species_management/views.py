@@ -11,10 +11,14 @@ from .serializers import (
 class SpeciesListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     queryset = Species.objects.all()
-    serializer_class = SpeciesListSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['family', 'publication_status', 'is_public', 'habitats__name']
     search_fields = ['name', 'recent_name', 'family']
+
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            return SpeciesDetailSerializer
+        return SpeciesListSerializer
 
 # Retrieve, Update, and Delete View for Species
 class SpeciesRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):

@@ -32,4 +32,3 @@ class Compound(models.Model):
 
     def __str__(self):
         return f"Compound {self.subclass}"
-
