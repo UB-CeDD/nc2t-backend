@@ -41,11 +41,16 @@ class AdminUserCreateAPI(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+import logging
+
+# Get an instance of a logger
+logger = logging.getLogger(__name__)
+
 class LoginAPI(APIView):
     permission_classes = [AllowAny]
 
     def post(self, request):
-        print(request.data)
+        logger.error(f"Login attempt with data: {request.data}")
 
         username = request.data.get('username')
         password = request.data.get('password')

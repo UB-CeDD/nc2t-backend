@@ -178,8 +178,30 @@ class ReferenceSearchView(APIView):
 
         if species_with_refs.exists():
             serializer = SpeciesSerializer(species_with_refs, many=True)
-            print('Search results:', serializer.data)
-            return Response(serializer.data)
+            formatted_data = []
+            reference_map = {ref.id: ref for ref in references}
+            for obj in serializer.data:
+                # Get all reference IDs for this species
+                species_references = obj.get("references", [])
+                # Get the first matching reference from the filtered references, if any
+                ref = None
+                for ref_id in species_references:
+                    if ref_id in reference_map:
+                        ref = reference_map[ref_id]
+                        break
+                formatted_data.append({
+                    "title": obj.get("name"),
+                    "author": ref.author if ref else None,
+                    "doi": ref.doi if ref else None,
+                    "brief_text": obj.get("trad_uses")[:100] if obj.get("trad_uses") else "",
+                    "link": None,  # You can add a link if available in your model/serializer
+                    "reference_id": ref.id if ref else None,
+                    "reference_title": ref.title if ref else None,
+                })
+            return Response({
+                "message": "Results found in the database",
+                "results": formatted_data
+            })
         else:
             search_query = f"{search_term}"
             web_results = web_search(search_query)
@@ -208,7 +230,7 @@ class ReferenceSearchView(APIView):
                     "title": result.get("title") or result.get("name"),
                     "author": None,  # Author is not reliably available from search results
                     "doi": doi,
-                    "brief_text": result.get("snippet"),
+                    "brief_text": result.get("snippet")[:100],
                     "link": link
                 })
             return Response({

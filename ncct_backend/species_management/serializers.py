@@ -42,19 +42,16 @@ class SpeciesChangeSerializer(serializers.ModelSerializer):
 class SpeciesSerializer(serializers.ModelSerializer):
     # Use PrimaryKeyRelatedField for write operations, but allow for nested reading
     compounds = serializers.PrimaryKeyRelatedField(
-        queryset=Compound.objects.all(), many=True, required=False
+        queryset=Compound.objects.all(), many=True, allow_empty=False
     )
     references = serializers.PrimaryKeyRelatedField(
-        queryset=Reference.objects.all(), many=True, required=False
+        queryset=Reference.objects.all(), many=True, allow_empty=False
     )
     harvest_sites = serializers.PrimaryKeyRelatedField(
-        queryset=Location.objects.all(), many=True, required=False
+        queryset=Location.objects.all(), many=True, allow_empty=False
     )
     storage_locations = serializers.PrimaryKeyRelatedField(
-        queryset=Location.objects.all(), many=True, required=False
-    )
-    habitats = serializers.PrimaryKeyRelatedField(
-        queryset=Habitat.objects.all(), many=True, required=False
+        queryset=Location.objects.all(), many=True, required=True
     )
 
     class Meta:
@@ -65,12 +62,7 @@ class SpeciesSerializer(serializers.ModelSerializer):
             'compounds', 'references', 'harvest_sites', 'storage_locations', 'habitats'
         ]
 
-    def to_representation(self, instance):
-        """
-        Switch to a detailed serializer for representation.
-        """
-        serializer = SpeciesDetailSerializer(instance, context=self.context)
-        return serializer.data
+
 
 
 class SpeciesDetailSerializer(serializers.ModelSerializer):

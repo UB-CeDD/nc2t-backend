@@ -17,8 +17,8 @@ class SpeciesListCreateView(ListCreateAPIView):
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
-            return SpeciesDetailSerializer
-        return SpeciesListSerializer
+            return SpeciesListSerializer
+        return SpeciesDetailSerializer
 
 # Retrieve, Update, and Delete View for Species
 class SpeciesRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):

@@ -40,7 +40,7 @@ class Species(models.Model):
     name = models.CharField(max_length=255, null=False)
     recent_name = models.CharField(max_length=255, null=True, blank=True)
     kingdom = models.CharField(max_length=255, null=False, default='Plantae')
-    trad_uses = models.CharField(max_length=255, null=True, blank=True)
+    trad_uses = models.CharField(null=True, blank=True)
     part_used = models.CharField(max_length=255, null=False, blank=True)
     family = models.CharField(max_length=255, null=False)
     collection_date = models.DateField(null=True, blank=True)
