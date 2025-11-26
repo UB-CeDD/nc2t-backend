@@ -24,8 +24,8 @@ CROSSREF_API = os.getenv("CROSSREF_API")
 SEMANTIC_SCHOLAR_API = os.getenv("SEMANTIC_SCHOLAR_API")
 BING_SEARCH_API = os.getenv("BING_SEARCH_API")
 BING_API_KEY = os.getenv("BING_API_KEY", "")
-GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-GOOGLE_CSE_ID = os.getenv("GOOGLE_CSE_ID")
+GOOGLE_API_KEY = os.getenv("GOOGLE_CUSTOM_SEARCH_API_KEY")
+GOOGLE_CSE_ID = os.getenv("GOOGLE_SEARCH_ENGINE_ID")
 
 def extract_text_from_pdf(pdf_file):
     """Extract full text from PDF using PyMuPDF."""
@@ -64,13 +64,18 @@ def google_search(query):
 
 def web_search(query):
     """Try Bing API first, fallback to Google if no key."""
+    print(f"Web search query: {query}")
     if BING_API_KEY:
         headers = {"Ocp-Apim-Subscription-Key": BING_API_KEY}
         bing_res = requests.get(BING_SEARCH_API, headers=headers, params={"q": query, "count": 5})
+        print(f"Bing API response status code: {bing_res.status_code}")
+        print(f"Bing API response JSON: {bing_res.json()}")
         if bing_res.status_code == 200:
             return bing_res.json().get("webPages", {}).get("value", [])
     else:
-        return google_search(query)
+        google_results = google_search(query)
+        print(f"Google Search results: {google_results}")
+        return google_results
 
 def search_publication_internet(text):
     results = {
@@ -204,35 +209,43 @@ class ReferenceSearchView(APIView):
             })
         else:
             search_query = f"{search_term}"
+            print(f"Initiating web search for query: {search_query}")
             web_results = web_search(search_query)
+            print(f"Raw web search results: {web_results}")
             # Always return web search results as an array
             formatted_results = []
             for result in web_results:
                 link = result.get("link") or result.get("url")
                 if not link:
+                    print(f"Skipping result due to no link: {result}")
                     continue
 
                 doi = None
+                print(f"Attempting to fetch content from link: {link}")
                 try:
                     page_res = requests.get(link, timeout=10)
+                    print(f"Page content fetch status for {link}: {page_res.status_code}")
                     if page_res.status_code == 200:
-                        # Using BeautifulSoup to avoid issues with non-text content
                         soup = BeautifulSoup(page_res.content, 'html.parser')
                         text = soup.get_text()
                         doi_match = re.search(r'\b10\.\d{4,9}/[-._;()/:A-Z0-9]+\b', text, re.IGNORECASE)
                         if doi_match:
                             doi = doi_match.group(0)
-                except requests.exceptions.RequestException:
-                    # It's okay if a page fails to load, just continue
+                            print(f"DOI found for {link}: {doi}")
+                        else:
+                            print(f"No DOI found on page: {link}")
+                except requests.exceptions.RequestException as e:
+                    print(f"Error fetching page {link}: {e}")
                     pass
 
                 formatted_results.append({
                     "title": result.get("title") or result.get("name"),
-                    "author": None,  # Author is not reliably available from search results
+                    "author": None,
                     "doi": doi,
                     "brief_text": result.get("snippet")[:100],
                     "link": link
                 })
+            print(f"Formatted web search results: {formatted_results}")
             return Response({
                 "message": "No results found in the database. Showing web search results.",
                 "results": formatted_results

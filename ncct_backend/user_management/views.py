@@ -9,6 +9,7 @@ from django.shortcuts import get_object_or_404
 from django.db.models import Q
 from .serializers import UserSerializer, RegisterSerializer, AdminUserCreateSerializer
 from .permissions import IsAdminUser
+import logging
 
 
 class RegisterAPI(APIView):
@@ -30,6 +31,7 @@ class RegisterAPI(APIView):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class AdminUserCreateAPI(APIView):
     permission_classes = [IsAuthenticated, IsAdminUser]
 
@@ -40,8 +42,6 @@ class AdminUserCreateAPI(APIView):
             return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
-import logging
 
 # Get an instance of a logger
 logger = logging.getLogger(__name__)
@@ -141,4 +141,3 @@ class LogoutAPI(APIView):
             except TokenError:
                 return Response({'error': 'Invalid refresh token.'}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"detail": f"User {user.username} logged out successfully."}, status=status.HTTP_200_OK)
-

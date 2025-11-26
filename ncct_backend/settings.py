@@ -59,7 +59,8 @@ MIDDLEWARE = [
 
 # Allow specific origins
 CORS_ALLOWED_ORIGINS = [
-    'http://localhost:3000',  # React frontend URL
+    'http://localhost:3000',
+    'https://nc2t-dashboard.tabiidris.me'# React frontend URL
 ]
 
 ROOT_URLCONF = 'ncct_backend.urls'
