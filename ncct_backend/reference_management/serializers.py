@@ -15,11 +15,16 @@ class ReferenceSerializer(serializers.ModelSerializer):
         title = data.get('title')
         author = data.get('author')
 
+        # Exclude the current instance when validating duplicates during updates
+        qs = Reference.objects.all()
+        if self.instance:
+            qs = qs.exclude(pk=self.instance.pk)
+
         if doi:
-            if Reference.objects.filter(doi=doi).exists():
+            if qs.filter(doi=doi).exists():
                 raise serializers.ValidationError("A reference with this DOI already exists.")
         elif title and author:
-            if Reference.objects.filter(title=title, author=author).exists():
+            if qs.filter(title=title, author=author).exists():
                 raise serializers.ValidationError("A reference with this title and author already exists.")
 
         return data

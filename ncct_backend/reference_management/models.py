@@ -13,7 +13,8 @@ class Reference(models.Model):
     author = models.CharField(max_length=255)
     doi = models.CharField(max_length=255, blank=True, null=True)
     thesis_level = models.CharField(max_length=255, blank=True, null=True)
-
+    year = models.IntegerField(blank=True, null=True)
+    
     def __str__(self):
         return self.title
 

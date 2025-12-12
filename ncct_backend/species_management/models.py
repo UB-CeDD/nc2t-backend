@@ -1,6 +1,7 @@
 import secrets
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
+from django.utils import timezone
 from django.conf import settings
 from ncct_backend.compound_management.models import Compound
 from ncct_backend.location_management.models import Location, Site
@@ -43,7 +44,8 @@ class Species(models.Model):
     trad_uses = models.CharField(null=True, blank=True)
     part_used = models.CharField(max_length=255, null=False, blank=True)
     family = models.CharField(max_length=255, null=False)
-    collection_date = models.DateField(null=True, blank=True)
+    # Default auto-populates; null/blank kept to avoid migration prompt and allow legacy nulls
+    collection_date = models.DateField(default=timezone.now, null=True, blank=True)
     collection_data = ArrayField(models.TextField(), blank=True, null=True)
     publication_status = models.CharField(max_length=10, choices=PUBLICATION_STATUS_CHOICES, default='DRAFT')
     is_public = models.BooleanField(default=False)
@@ -54,7 +56,7 @@ class Species(models.Model):
     # New/updated fields based on user request
     compounds = models.ManyToManyField(Compound, related_name='species', blank=True)
     references = models.ManyToManyField(Reference, related_name='species', blank=True)
-    harvest_sites = models.ManyToManyField(Location, related_name='picked_species', null=False)
+    harvest_sites = models.ManyToManyField(Location, related_name='picked_species', blank=True)
     storage_locations = models.ManyToManyField(Location, related_name='stored_species', blank=True)
 
 
