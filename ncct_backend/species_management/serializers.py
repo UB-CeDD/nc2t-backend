@@ -66,11 +66,30 @@ class SpeciesSerializer(serializers.ModelSerializer):
 
 
 class SpeciesDetailSerializer(serializers.ModelSerializer):
-    compounds = CompoundSerializer(many=True, read_only=True)
-    references = ReferenceSerializer(many=True, read_only=True)
-    harvest_sites = LocationSerializer(many=True, read_only=True)
-    storage_locations = LocationSerializer(many=True, read_only=True)
-    habitats = HabitatSerializer(many=True, read_only=True)
+    # Read-only nested views for GET requests
+    compounds_detail = CompoundSerializer(many=True, read_only=True, source='compounds')
+    references_detail = ReferenceSerializer(many=True, read_only=True, source='references')
+    harvest_sites_detail = LocationSerializer(many=True, read_only=True, source='harvest_sites')
+    storage_locations_detail = LocationSerializer(many=True, read_only=True, source='storage_locations')
+    habitats_detail = HabitatSerializer(many=True, read_only=True, source='habitats')
+    
+    # Writable fields for updates
+    compounds = serializers.PrimaryKeyRelatedField(
+        queryset=Compound.objects.all(), many=True, required=False
+    )
+    references = serializers.PrimaryKeyRelatedField(
+        queryset=Reference.objects.all(), many=True, required=False
+    )
+    harvest_sites = serializers.PrimaryKeyRelatedField(
+        queryset=Location.objects.all(), many=True, required=False
+    )
+    storage_locations = serializers.PrimaryKeyRelatedField(
+        queryset=Location.objects.all(), many=True, required=False
+    )
+    habitats = serializers.PrimaryKeyRelatedField(
+        queryset=Habitat.objects.all(), many=True, required=False
+    )
+    
     users = SpeciesUserSerializer(many=True, read_only=True, source='speciesuser_set')
     changes = SpeciesChangeSerializer(many=True, read_only=True)
 
@@ -79,8 +98,9 @@ class SpeciesDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'recent_name', 'kingdom', 'family', 'trad_uses', 'part_used',
             'collection_data', 'publication_status', 'is_public', 'publication_date',
-            'compounds', 'references', 'harvest_sites', 'storage_locations', 'habitats',
-            'users', 'changes'
+            'compounds', 'compounds_detail', 'references', 'references_detail',
+            'harvest_sites', 'harvest_sites_detail', 'storage_locations', 'storage_locations_detail',
+            'habitats', 'habitats_detail', 'users', 'changes'
         ]
 
 

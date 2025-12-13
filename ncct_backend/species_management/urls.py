@@ -14,13 +14,13 @@ from .views import (
 
 urlpatterns = [
     path('species/', SpeciesListCreateView.as_view(), name='species-list-create'),
-    path('species/<str:pk>/', SpeciesRetrieveUpdateDestroyView.as_view(), name='species-detail'),
-    path('species/<str:species_pk>/users/', SpeciesUserListCreateView.as_view(), name='species-user-list-create'),
-    path('species/<str:species_pk>/users/<int:pk>/', SpeciesUserRetrieveUpdateDestroyView.as_view(), name='species-user-detail'),
-    path('species/<str:species_pk>/changes/', SpeciesChangeListCreateView.as_view(), name='species-change-list-create'),
-    path('species/<str:species_pk>/changes/<int:pk>/', SpeciesChangeRetrieveUpdateDestroyView.as_view(), name='species-change-detail'),
+    path('species/<slug:pk>/', SpeciesRetrieveUpdateDestroyView.as_view(), name='species-detail'),
+    path('species/<slug:species_pk>/users/', SpeciesUserListCreateView.as_view(), name='species-user-list-create'),
+    path('species/<slug:species_pk>/users/<int:pk>/', SpeciesUserRetrieveUpdateDestroyView.as_view(), name='species-user-detail'),
+    path('species/<slug:species_pk>/changes/', SpeciesChangeListCreateView.as_view(), name='species-change-list-create'),
+    path('species/<slug:species_pk>/changes/<int:pk>/', SpeciesChangeRetrieveUpdateDestroyView.as_view(), name='species-change-detail'),
     path('habitats/', HabitatListCreateView.as_view(), name='habitat-list-create'),
-    path('habitats/<str:pk>/', HabitatRetrieveUpdateDestroyView.as_view(), name='habitat-detail'),
+    path('habitats/<slug:pk>/', HabitatRetrieveUpdateDestroyView.as_view(), name='habitat-detail'),
     path('herbariums/', HerbariumListCreateView.as_view(), name='herbarium-list-create'),
-    path('herbariums/<str:pk>/', HerbariumRetrieveUpdateDestroyView.as_view(), name='herbarium-detail'),
+    path('herbariums/<slug:pk>/', HerbariumRetrieveUpdateDestroyView.as_view(), name='herbarium-detail'),
 ]
