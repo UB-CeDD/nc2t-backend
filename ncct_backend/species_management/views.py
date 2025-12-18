@@ -1,6 +1,6 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Species, SpeciesUser, SpeciesChange, Habitat, Herbarium
 from .serializers import (
     SpeciesListSerializer, SpeciesDetailSerializer, SpeciesUserSerializer, 
@@ -9,11 +9,15 @@ from .serializers import (
 
 # List and Create View for Species
 class SpeciesListCreateView(ListCreateAPIView):
-    permission_classes = [IsAuthenticated]
     queryset = Species.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['family', 'publication_status', 'is_public', 'habitats__name']
     search_fields = ['name', 'recent_name', 'family']
+
+    def get_permissions(self):
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
     def get_serializer_class(self):
         if self.request.method == 'POST':
@@ -22,9 +26,13 @@ class SpeciesListCreateView(ListCreateAPIView):
 
 # Retrieve, Update, and Delete View for Species
 class SpeciesRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
-    permission_classes = [IsAuthenticated]
     queryset = Species.objects.all()
     serializer_class = SpeciesDetailSerializer
+
+    def get_permissions(self):
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
 # List and Create View for SpeciesUser
 class SpeciesUserListCreateView(ListCreateAPIView):

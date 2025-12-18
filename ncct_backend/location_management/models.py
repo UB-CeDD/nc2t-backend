@@ -17,6 +17,7 @@ class Location(models.Model):
     place = models.CharField(max_length=255, blank=True)
     gps_latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     gps_longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    voucher_specimen_number = models.CharField(max_length=255, blank=True, null=True, help_text="Optional voucher specimen number")
 
     def __str__(self):
         return f"{self.name}, {self.city_town}, {self.country}"

@@ -14,10 +14,18 @@ from .serializers import CompoundSerializer
 class CompoundListCreateView(ListCreateAPIView):
     queryset = Compound.objects.all()
     serializer_class = CompoundSerializer
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
 # Retrieve, Update, and Destroy View
 class CompoundRetrieveUpdateDestroyView(RetrieveUpdateDestroyAPIView):
     queryset = Compound.objects.all()
     serializer_class = CompoundSerializer
-    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in ['GET', 'HEAD', 'OPTIONS']:
+            return [AllowAny()]
+        return [IsAuthenticated()]

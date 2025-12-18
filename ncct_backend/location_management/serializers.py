@@ -2,6 +2,8 @@ from rest_framework import serializers
 from .models import Location, Site
 
 class LocationSerializer(serializers.ModelSerializer):
+    voucher_specimen_number = serializers.CharField(max_length=255, required=False, allow_blank=True, allow_null=True)
+    
     class Meta:
         model = Location
         fields = '__all__'
