@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from django.utils import timezone
 from .models import Species, SpeciesUser, SpeciesChange, Habitat, Herbarium
 from ncct_backend.reference_management.serializers import ReferenceSerializer
 from ncct_backend.compound_management.serializers import CompoundSerializer
@@ -53,12 +54,13 @@ class SpeciesSerializer(serializers.ModelSerializer):
     storage_locations = serializers.PrimaryKeyRelatedField(
         queryset=Location.objects.all(), many=True, required=True
     )
+    collection_date = serializers.DateField(required=False, allow_null=True, default=timezone.now)
 
     class Meta:
         model = Species
         fields = [
             'id', 'name', 'recent_name', 'kingdom', 'family', 'trad_uses', 'part_used',
-            'collection_data', 'publication_status', 'is_public', 'publication_date',
+            'collection_date', 'collection_data', 'publication_status', 'is_public', 'publication_date',
             'compounds', 'references', 'harvest_sites', 'storage_locations', 'habitats'
         ]
 
@@ -89,6 +91,7 @@ class SpeciesDetailSerializer(serializers.ModelSerializer):
     habitats = serializers.PrimaryKeyRelatedField(
         queryset=Habitat.objects.all(), many=True, required=False
     )
+    collection_date = serializers.DateField(required=False, allow_null=True, default=timezone.now)
     
     users = SpeciesUserSerializer(many=True, read_only=True, source='speciesuser_set')
     changes = SpeciesChangeSerializer(many=True, read_only=True)
@@ -97,7 +100,7 @@ class SpeciesDetailSerializer(serializers.ModelSerializer):
         model = Species
         fields = [
             'id', 'name', 'recent_name', 'kingdom', 'family', 'trad_uses', 'part_used',
-            'collection_data', 'publication_status', 'is_public', 'publication_date',
+            'collection_date', 'collection_data', 'publication_status', 'is_public', 'publication_date',
             'compounds', 'compounds_detail', 'references', 'references_detail',
             'harvest_sites', 'harvest_sites_detail', 'storage_locations', 'storage_locations_detail',
             'habitats', 'habitats_detail', 'users', 'changes'
